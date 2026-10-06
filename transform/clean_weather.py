@@ -1,13 +1,14 @@
 import json
+import os
 from pathlib import Path
 
 import pandas as pd
 from lake import upload_to_lake
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
-RAW_DIR = PROJECT_ROOT / "data" / "raw"
-SILVER_DIR = PROJECT_ROOT / "data" / "silver"
-
+DATA_DIR = Path(os.environ.get("PIPELINE_DATA_DIR", PROJECT_ROOT / "data"))
+RAW_DIR = DATA_DIR / "raw"
+SILVER_DIR = DATA_DIR / "silver"
 
 class ValidationError(Exception):
      pass

@@ -1,12 +1,13 @@
+import os
 from datetime import datetime, timezone
 from pathlib import Path
 
 import pandas as pd
-import pandas as pd
 from lake import read_parquet_files, upload_to_lake
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
-GOLD_DIR = PROJECT_ROOT / "data" / "gold"
+DATA_DIR = Path(os.environ.get("PIPELINE_DATA_DIR", PROJECT_ROOT / "data"))
+GOLD_DIR = DATA_DIR / "gold"
 TIMEZONE = "America/New_York"
 
 def load_silver() -> pd.DataFrame:

@@ -1,4 +1,5 @@
 import json
+import os
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -12,7 +13,9 @@ PARAMS = {
     "hourly": "temperature_2m,precipitation",
 }
 
-RAW_DIR = Path(__file__).resolve().parent.parent / "data" / "raw"
+PROJECT_ROOT = Path(__file__).resolve().parent.parent
+DATA_DIR = Path(os.environ.get("PIPELINE_DATA_DIR", PROJECT_ROOT / "data"))
+RAW_DIR = DATA_DIR / "raw"
 
 
 def fetch_weather() -> dict:
