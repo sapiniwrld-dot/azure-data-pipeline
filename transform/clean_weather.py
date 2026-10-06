@@ -9,6 +9,10 @@ RAW_DIR = PROJECT_ROOT / "data" / "raw"
 SILVER_DIR = PROJECT_ROOT / "data" / "silver"
 
 
+class ValidationError(Exception):
+     pass
+
+
 def pending_raw_files() -> list[Path]:
     files = sorted(RAW_DIR.glob("weather_*.json"))
     pending = []
@@ -32,11 +36,22 @@ def transform(raw: dict) -> pd.DataFrame:
 
 
 def validate(df: pd.DataFrame) -> None:
-    assert not df.empty, "No rows"
-    assert df["time"].notna().all(), "Null timestamps"
-    assert df["time"].is_unique, "Duplicate timestamps"
-    assert df["temperature_c"].dropna().between(-60, 60).all(), "Temperature out of range"
-    assert (df["precipitation_mm"].dropna() >= 0).all(), "Negative precipitation"
+    if df.empty:
+        raise ValidationError("No rows")
+
+    problems = []
+    if df["time"].isna().any():
+        problems.append("Null timestamps")
+    if not df["time"].is_unique:
+        problems.append("Duplicate timestamps")
+    if not df["temperature_c"].dropna().between(-60, 60).all():
+        problems.append("Temperature out of range")
+    if (df["precipitation_mm"].dropna() < 0).any():
+        problems.append("Negative precipitation")
+
+    if problems:
+        raise ValidationError("; ".join(problems))
+    
 def main():
     raw_files = pending_raw_files()
     if not raw_files:
@@ -52,6 +67,7 @@ def main():
 
         SILVER_DIR.mkdir(parents=True, exist_ok=True)
         out_path = SILVER_DIR / raw_path.with_suffix(".parquet").name
+
         df.to_parquet(out_path, index=False)
         print(f"Wrote {len(df)} rows to {out_path}")
         lake_path = upload_to_lake(out_path, "silver", "weather")
