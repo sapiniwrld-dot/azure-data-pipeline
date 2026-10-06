@@ -3,25 +3,22 @@ from pathlib import Path
 
 import pandas as pd
 import pandas as pd
-from lake import upload_to_lake
+from lake import read_parquet_files, upload_to_lake
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
-SILVER_DIR = PROJECT_ROOT / "data" / "silver"
 GOLD_DIR = PROJECT_ROOT / "data" / "gold"
 TIMEZONE = "America/New_York"
 
-
 def load_silver() -> pd.DataFrame:
     frames = []
-    for path in sorted(SILVER_DIR.glob("weather_*.parquet")):
-        df = pd.read_parquet(path)
-        timestamp = path.stem.removeprefix("weather_")
+    for name, df in read_parquet_files("silver", "weather"):
+        timestamp = Path(name).stem.removeprefix("weather_")
         fetched_at = datetime.strptime(timestamp, "%Y-%m-%d_%H%M")
         df["fetched_at"] = fetched_at.replace(tzinfo=timezone.utc)
         frames.append(df)
 
     if not frames:
-        raise FileNotFoundError(f"No silver files in {SILVER_DIR}. Run silver first.")
+        raise FileNotFoundError("No silver files in the lake. Run silver first.")
     return pd.concat(frames, ignore_index=True)
 
 
