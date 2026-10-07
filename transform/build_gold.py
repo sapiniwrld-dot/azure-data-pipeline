@@ -53,7 +53,7 @@ def main():
     out_path = GOLD_DIR / "weather_daily.parquet"
     result.to_parquet(out_path, index=False)
     print(f"Wrote {len(result)} daily rows to {out_path}")
-    lake_path = upload_to_lake(out_path, "gold", "weather_daily")
+    lake_path = upload_to_lake(out_path, "gold", "weather_daily", partitioned=False)
     print(f"Uploaded to {lake_path}")
 
 

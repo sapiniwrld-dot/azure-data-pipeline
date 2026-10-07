@@ -10,11 +10,17 @@ from dotenv import load_dotenv
 load_dotenv()
 
 
-def upload_to_lake(local_path: Path, container: str, dataset: str) -> str:
-    now = datetime.now(timezone.utc)
-    lake_path = (
-        f"{dataset}/year={now:%Y}/month={now:%m}/day={now:%d}/{local_path.name}"
-    )
+def upload_to_lake(
+    local_path: Path, container: str, dataset: str, partitioned: bool = True
+) -> str:
+    if partitioned:
+        now = datetime.now(timezone.utc)
+        lake_path = (
+            f"{dataset}/year={now:%Y}/month={now:%m}/day={now:%d}/{local_path.name}"
+        )
+    else:
+        lake_path = f"{dataset}/{local_path.name}"
+        
     service = DataLakeServiceClient.from_connection_string(
         os.environ["AZURE_STORAGE_CONNECTION_STRING"]
     )
