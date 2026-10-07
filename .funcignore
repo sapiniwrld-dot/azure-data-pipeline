@@ -1,0 +1,9 @@
+.git*
+.vscode
+.venv
+__pycache__
+data
+.env
+local.settings.json
+CLAUDE.local.md
+.claude
