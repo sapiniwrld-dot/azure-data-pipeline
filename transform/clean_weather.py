@@ -66,13 +66,18 @@ def main():
         df = transform(raw)
         validate(df)
 
-        SILVER_DIR.mkdir(parents=True, exist_ok=True)
-        out_path = SILVER_DIR / raw_path.with_suffix(".parquet").name
+        # Stage the file and only move it into SILVER_DIR after a successful
+        # upload, so a failed upload leaves the raw file pending for retry.
+        staging_dir = SILVER_DIR / ".staging"
+        staging_dir.mkdir(parents=True, exist_ok=True)
+        staged_path = staging_dir / raw_path.with_suffix(".parquet").name
+        out_path = SILVER_DIR / staged_path.name
 
-        df.to_parquet(out_path, index=False)
-        print(f"Wrote {len(df)} rows to {out_path}")
-        lake_path = upload_to_lake(out_path, "silver", "weather")
+        df.to_parquet(staged_path, index=False)
+        print(f"Wrote {len(df)} rows to {staged_path}")
+        lake_path = upload_to_lake(staged_path, "silver", "weather")
         print(f"Uploaded to {lake_path}")
+        staged_path.replace(out_path)
 
 
 if __name__ == "__main__":
