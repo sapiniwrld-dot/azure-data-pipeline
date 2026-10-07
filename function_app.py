@@ -1,3 +1,4 @@
+import logging
 import os
 import tempfile
 
@@ -10,6 +11,8 @@ import azure.functions as func  # noqa: E402
 import run_pipeline  # noqa: E402
 
 app = func.FunctionApp()
+
+logging.getLogger("azure").setLevel(logging.WARNING)
 
 
 @app.timer_trigger(schedule="0 0 */6 * * *", arg_name="timer", run_on_startup=False)
