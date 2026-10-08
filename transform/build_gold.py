@@ -1,3 +1,4 @@
+import logging
 import os
 from datetime import UTC, datetime
 from pathlib import Path
@@ -9,6 +10,7 @@ from lake import read_parquet_files, upload_to_lake
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 DATA_DIR = Path(os.environ.get("PIPELINE_DATA_DIR", PROJECT_ROOT / "data"))
 GOLD_DIR = DATA_DIR / "gold"
+logger = logging.getLogger(__name__)
 TIMEZONE = "America/New_York"
 
 
@@ -54,10 +56,14 @@ def main():
     GOLD_DIR.mkdir(parents=True, exist_ok=True)
     out_path = GOLD_DIR / "weather_daily.parquet"
     result.to_parquet(out_path, index=False)
-    print(f"Wrote {len(result)} daily rows to {out_path}")
+    logger.info("Wrote %d daily rows to %s", len(result), out_path)
     lake_path = upload_to_lake(out_path, "gold", "weather_daily", partitioned=False)
-    print(f"Uploaded to {lake_path}")
+    logger.info("Uploaded to %s", lake_path)
 
 
 if __name__ == "__main__":
+    logging.basicConfig(
+        level=logging.INFO,
+        format="%(asctime)s %(levelname)s %(name)s: %(message)s",
+    )
     main()

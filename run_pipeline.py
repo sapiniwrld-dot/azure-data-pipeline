@@ -1,8 +1,11 @@
+import logging
 import sys
 import time
 
 from ingest import extract_weather
 from transform import build_gold, clean_weather
+
+logger = logging.getLogger(__name__)
 
 STAGES = [
     ("bronze", extract_weather.main),
@@ -14,15 +17,21 @@ STAGES = [
 def main() -> int:
     start = time.perf_counter()
     for name, stage in STAGES:
-        print(f"--- {name} ---")
+        logger.info("--- %s ---", name)
         try:
             stage()
-        except Exception as e:  # noqa: BLE001 - top-level runner reports any stage failure
-            print(f"Pipeline failed in {name} stage: {e}")
+        except Exception:
+            logger.exception("Stage %s failed", name)
             return 1
-    print(f"Pipeline finished in {time.perf_counter() - start:.1f}s")
+
+    logger.info("Pipeline completed in %.2f seconds", time.perf_counter() - start)
     return 0
 
 
 if __name__ == "__main__":
+    logging.basicConfig(
+        level=logging.INFO,
+        format="%(asctime)s %(levelname)s %(name)s: %(message)s",
+    )
+    logging.getLogger("azure").setLevel(logging.WARNING)
     sys.exit(main())

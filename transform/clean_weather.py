@@ -1,4 +1,5 @@
 import json
+import logging
 import os
 from pathlib import Path
 
@@ -10,6 +11,7 @@ PROJECT_ROOT = Path(__file__).resolve().parent.parent
 DATA_DIR = Path(os.environ.get("PIPELINE_DATA_DIR", PROJECT_ROOT / "data"))
 RAW_DIR = DATA_DIR / "raw"
 SILVER_DIR = DATA_DIR / "silver"
+logger = logging.getLogger(__name__)
 
 
 class ValidationError(Exception):
@@ -61,7 +63,7 @@ def validate(df: pd.DataFrame) -> None:
 def main():
     raw_files = pending_raw_files()
     if not raw_files:
-        print("No new raw files to process.")
+        logger.info("No new raw files to process.")
         return
 
     for raw_path in raw_files:
@@ -79,11 +81,15 @@ def main():
         out_path = SILVER_DIR / staged_path.name
 
         df.to_parquet(staged_path, index=False)
-        print(f"Wrote {len(df)} rows to {staged_path}")
+        logger.info("Wrote %d rows to %s", len(df), staged_path)
         lake_path = upload_to_lake(staged_path, "silver", "weather")
-        print(f"Uploaded to {lake_path}")
+        logger.info("Uploaded to %s", lake_path)
         staged_path.replace(out_path)
 
 
 if __name__ == "__main__":
+    logging.basicConfig(
+        level=logging.INFO,
+        format="%(asctime)s %(levelname)s %(name)s: %(message)s",
+    )
     main()

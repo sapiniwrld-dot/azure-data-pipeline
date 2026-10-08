@@ -1,4 +1,5 @@
 import json
+import logging
 import os
 from datetime import UTC, datetime
 from pathlib import Path
@@ -17,6 +18,7 @@ PARAMS = {
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 DATA_DIR = Path(os.environ.get("PIPELINE_DATA_DIR", PROJECT_ROOT / "data"))
 RAW_DIR = DATA_DIR / "raw"
+logger = logging.getLogger(__name__)
 
 
 def fetch_weather() -> dict:
@@ -37,10 +39,14 @@ def save_raw(data: dict) -> Path:
 def main():
     data = fetch_weather()
     path = save_raw(data)
-    print(f"Saved {len(data['hourly']['time'])} hourly records to {path}")
+    logger.info("Saved %d hourly records to %s", len(data["hourly"]["time"]), path)
     lake_path = upload_to_lake(path, "bronze", "weather")
-    print(f"Uploaded to {lake_path}")
+    logger.info("Uploaded to %s", lake_path)
 
 
 if __name__ == "__main__":
+    logging.basicConfig(
+        level=logging.INFO,
+        format="%(asctime)s %(levelname)s %(name)s: %(message)s",
+    )
     main()
