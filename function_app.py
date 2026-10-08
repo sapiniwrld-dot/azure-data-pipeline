@@ -6,9 +6,9 @@ os.environ.setdefault(
     "PIPELINE_DATA_DIR", os.path.join(tempfile.gettempdir(), "pipeline-data")
 )
 
-import azure.functions as func  # noqa: E402
+import azure.functions as func
 
-import run_pipeline  # noqa: E402
+import run_pipeline
 
 app = func.FunctionApp()
 

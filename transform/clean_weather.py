@@ -3,6 +3,7 @@ import os
 from pathlib import Path
 
 import pandas as pd
+
 from lake import upload_to_lake
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
@@ -10,8 +11,9 @@ DATA_DIR = Path(os.environ.get("PIPELINE_DATA_DIR", PROJECT_ROOT / "data"))
 RAW_DIR = DATA_DIR / "raw"
 SILVER_DIR = DATA_DIR / "silver"
 
+
 class ValidationError(Exception):
-     pass
+    pass
 
 
 def pending_raw_files() -> list[Path]:
@@ -22,14 +24,16 @@ def pending_raw_files() -> list[Path]:
         if not silver_file.exists():
             pending.append(f)
     return pending
-    
+
 
 def transform(raw: dict) -> pd.DataFrame:
     df = pd.DataFrame(raw["hourly"])
-    df = df.rename(columns={
-        "temperature_2m": "temperature_c",
-        "precipitation": "precipitation_mm",
-    })
+    df = df.rename(
+        columns={
+            "temperature_2m": "temperature_c",
+            "precipitation": "precipitation_mm",
+        }
+    )
     df["time"] = pd.to_datetime(df["time"], utc=True)
     df["latitude"] = raw["latitude"]
     df["longitude"] = raw["longitude"]
@@ -52,7 +56,8 @@ def validate(df: pd.DataFrame) -> None:
 
     if problems:
         raise ValidationError("; ".join(problems))
-    
+
+
 def main():
     raw_files = pending_raw_files()
     if not raw_files:

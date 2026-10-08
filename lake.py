@@ -1,6 +1,6 @@
 import io
 import os
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 
 import pandas as pd
@@ -14,13 +14,13 @@ def upload_to_lake(
     local_path: Path, container: str, dataset: str, partitioned: bool = True
 ) -> str:
     if partitioned:
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
         lake_path = (
             f"{dataset}/year={now:%Y}/month={now:%m}/day={now:%d}/{local_path.name}"
         )
     else:
         lake_path = f"{dataset}/{local_path.name}"
-        
+
     service = DataLakeServiceClient.from_connection_string(
         os.environ["AZURE_STORAGE_CONNECTION_STRING"]
     )
@@ -30,7 +30,9 @@ def upload_to_lake(
     return f"{container}/{lake_path}"
 
 
-def read_parquet_files(container: str, directory: str) -> list[tuple[str, pd.DataFrame]]:
+def read_parquet_files(
+    container: str, directory: str
+) -> list[tuple[str, pd.DataFrame]]:
     service = DataLakeServiceClient.from_connection_string(
         os.environ["AZURE_STORAGE_CONNECTION_STRING"]
     )

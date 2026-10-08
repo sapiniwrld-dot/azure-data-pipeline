@@ -17,7 +17,7 @@ def main() -> int:
         print(f"--- {name} ---")
         try:
             stage()
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001 - top-level runner reports any stage failure
             print(f"Pipeline failed in {name} stage: {e}")
             return 1
     print(f"Pipeline finished in {time.perf_counter() - start:.1f}s")

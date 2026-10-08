@@ -1,8 +1,9 @@
 import os
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 
 import pandas as pd
+
 from lake import read_parquet_files, upload_to_lake
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
@@ -10,12 +11,13 @@ DATA_DIR = Path(os.environ.get("PIPELINE_DATA_DIR", PROJECT_ROOT / "data"))
 GOLD_DIR = DATA_DIR / "gold"
 TIMEZONE = "America/New_York"
 
+
 def load_silver() -> pd.DataFrame:
     frames = []
     for name, df in read_parquet_files("silver", "weather"):
         timestamp = Path(name).stem.removeprefix("weather_")
-        fetched_at = datetime.strptime(timestamp, "%Y-%m-%d_%H%M")
-        df["fetched_at"] = fetched_at.replace(tzinfo=timezone.utc)
+        fetched_at = datetime.strptime(timestamp, "%Y-%m-%d_%H%M").replace(tzinfo=UTC)
+        df["fetched_at"] = fetched_at
         frames.append(df)
 
     if not frames:

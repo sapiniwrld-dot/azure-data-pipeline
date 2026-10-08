@@ -1,0 +1,7 @@
+# Match the Python version Azure runs (local venv is newer).
+target-version = "py313"
+
+[lint]
+# On top of ruff's defaults, add pycodestyle errors (E) and warnings (W).
+# W includes W293, trailing whitespace on blank lines.
+extend-select = ["E", "W"]
