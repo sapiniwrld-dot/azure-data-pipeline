@@ -28,7 +28,12 @@ def pending_raw_files() -> list[Path]:
     return pending
 
 
-def transform(raw: dict) -> pd.DataFrame:
+def city_from_path(raw_path: Path) -> str:
+    # weather_new_york_2026-10-10_1400.json -> new_york
+    return raw_path.stem.removeprefix("weather_").rsplit("_", 2)[0]
+
+
+def transform(raw: dict, city: str) -> pd.DataFrame:
     df = pd.DataFrame(raw["hourly"])
     df = df.rename(
         columns={
@@ -38,6 +43,7 @@ def transform(raw: dict) -> pd.DataFrame:
     )
     df["time"] = pd.to_datetime(df["time"], utc=True)
     df["latitude"] = raw["latitude"]
+    df["city"] = city
     df["longitude"] = raw["longitude"]
     return df.drop_duplicates(subset="time")
 
@@ -70,7 +76,7 @@ def main():
         with open(raw_path) as f:
             raw = json.load(f)
 
-        df = transform(raw)
+        df = transform(raw, city_from_path(raw_path))
         validate(df)
 
         # Stage the file and only move it into SILVER_DIR after a successful
